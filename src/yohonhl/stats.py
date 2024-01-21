@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from datetime import datetime
 from datetime import time
+from typing import Any
 
 from yohonhl import api
 
@@ -26,7 +27,7 @@ class Goal:
     strength: str
 
 
-def goals_from_linescores(linescores: dict) -> list[Goal]:
+def goals_from_linescores(linescores: dict[str, Any]) -> list[Goal]:
     """Get a list of goals from linescore data."""
     all_goals = []
     for game in linescores["games"]:
