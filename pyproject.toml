@@ -28,6 +28,7 @@ ruff = "*"
 typeguard = ">=2.13.3"
 jupyter = "^1.0.0"
 types-requests = "^2.31.0.20240106"
+pandas-stubs = "^2.1.4.231227"
 
 [tool.poetry.scripts]
 yohonhl = "yohonhl.__main__:main"
