@@ -12,11 +12,11 @@ python = "^3.9"
 requests = "^2.31.0"
 click = "^8.1.7"
 pandas = "^2.2.0"
-types-requests = "^2.31.0.20240106"
 
 [tool.poetry.group.test.dependencies]
 pytest = ">=6.2.5"
 coverage = {extras = ["toml"], version = "^6.1"}
+requests-mock = "^1.11.0"
 
 [tool.poetry.group.dev.dependencies]
 Pygments = ">=2.10.0"
@@ -27,6 +27,7 @@ pre-commit-hooks = ">=4.1.0"
 ruff = "*"
 typeguard = ">=2.13.3"
 jupyter = "^1.0.0"
+types-requests = "^2.31.0.20240106"
 
 [tool.poetry.scripts]
 yohonhl = "yohonhl.__main__:main"
@@ -83,7 +84,7 @@ select = [
 ]
 target-version = 'py37'
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/*" = [
     'S',
