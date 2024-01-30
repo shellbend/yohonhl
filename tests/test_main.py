@@ -1,12 +1,13 @@
 """Test cases for the __main__ module."""
 
+import re
 from typing import Any
 
 import pytest
+from aioresponses import aioresponses
 from click.testing import CliRunner
 
 from yohonhl import __main__
-from yohonhl import api
 
 
 @pytest.fixture()
@@ -22,11 +23,16 @@ def test_main_succeeds(runner: CliRunner) -> None:
 
 
 def test_goals_succeeds(
-    runner: CliRunner, linescore_data: Any, requests_mock: Any
+    runner: CliRunner,
+    ep_match_schedule: re.Pattern[str],
+    ep_match_game: re.Pattern[str],
+    schedule_data: dict[str, Any],
+    game_data: dict[str, Any],
+    mock_aioresponse: aioresponses,
 ) -> None:
     """Goals subcommand succeeds."""
-    resp_data, expected_goals = linescore_data
-    requests_mock.get(f"{api.URL}/score/now", json=resp_data)
-    result = runner.invoke(__main__.main, ["goals"])
+    mock_aioresponse.get(ep_match_schedule, payload=schedule_data)
+    mock_aioresponse.get(ep_match_game, payload=game_data)
+    result = runner.invoke(__main__.main, ["goals", "-v"])
     assert result.exit_code == 0
     assert result.output

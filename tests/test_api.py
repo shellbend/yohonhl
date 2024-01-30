@@ -1,78 +1,77 @@
 """Unit tests for the yohonhl.api module."""
 
-import json
+import re
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
+from typing import AnyStr
 
 import pytest
+from aioresponses import aioresponses
 
 from yohonhl import api
 
 
-def test_get_team_schedule_for_season(requests_mock: Any) -> None:
-    """Test ability to get team schedule for entire season."""
-    team = "COL"
-    resp = {
-        "previousSeason": 20222023,
-        "currentSeason": 20232024,
-        "clubTimezone": "America/Denver",
-    }
-    requests_mock.get(
-        f"{api.URL}/club-schedule-season/{team}/now", text=json.dumps(resp)
-    )
-    assert api.get_team_schedule(team) == resp
+def test_get_week_start_dates_with_more_than_one_week() -> None:
+    """Get week starting dates with more than one week."""
+    start, end = datetime(2024, 1, 1), datetime(2024, 2, 1)  # noqa: DTZ001
+    num_days = (end - start).days
+    num_weeks = num_days // 7
+    start_dates = api._get_week_start_dates(api.fmt_date(start), api.fmt_date(end))  # noqa: SLF001
+    assert num_weeks == len(start_dates)
+    for idx, date in enumerate(start_dates):
+        assert date == api.fmt_date(start + idx * timedelta(days=7))
 
 
-def test_get_team_schedule_for_date(requests_mock: Any) -> None:
-    """Test getting team schedule for specific date."""
-    team = "COL"
-    datestr = api.DateStr.WEEK
-    resp = {
-        "previousSeason": 20222023,
-        "currentSeason": 20232024,
-        "clubTimezone": "America/Denver",
-    }
-    requests_mock.get(
-        f"{api.URL}/club-schedule/{team}/{datestr.value}", text=json.dumps(resp)
-    )
-    assert api.get_team_schedule(team, datestr=datestr) == resp
+def test_get_week_start_dates_with_end_prior_to_start() -> None:
+    """Get week starting dates where the end is prior to the start."""
+    start, end = datetime(2024, 2, 1), datetime(2024, 1, 1)  # noqa: DTZ001
+    start_dates = api._get_week_start_dates(api.fmt_date(start), api.fmt_date(end))  # noqa: SLF001
+    assert start_dates[0] == api.fmt_date(start)
 
 
-def test_get_schedule_for_all_teams_now(requests_mock: Any) -> None:
+_schedule_endpoint_matcher = re.compile(rf"{api.URL}/schedule/.*")
+
+
+def test_get_schedule_for_all_teams_now(
+    mock_aioresponse: aioresponses, ep_match_schedule: re.Pattern[AnyStr]
+) -> None:
     """Test getting the current schedule for all teams."""
     resp = {"foo": "bar"}
-    requests_mock.get(f"{api.URL}/schedule/now", text=json.dumps(resp))
-    assert api.get_schedule() == resp
+    mock_aioresponse.get(ep_match_schedule, payload=resp)
+    for s in api.get_weekly_schedules():
+        assert s == resp
 
 
-def test_get_schedule_for_date(requests_mock: Any) -> None:
+def test_get_schedule_for_date(
+    mock_aioresponse: aioresponses,
+    ep_match_schedule: re.Pattern[AnyStr],
+) -> None:
     """Test getting the schedule for all teams on a specific date."""
     resp = {"foo": "bar"}
     datestr = "2024-01-01"
-    requests_mock.get(f"{api.URL}/schedule/{datestr}", text=json.dumps(resp))
-    assert api.get_schedule(datestr) == resp
+    mock_aioresponse.get(ep_match_schedule, payload=resp)
+    assert all(s == resp for s in api.get_weekly_schedules(datestr))
 
 
-def test_get_schedule_with_bad_date_raises(requests_mock: Any) -> None:
+def test_get_schedule_with_bad_date_raises() -> None:
     """Test that an incorrect date supplied ot get_schedule raises value error."""
-    resp = {"foo": "bar"}
     datestr = "not-a-date"
-    requests_mock.get(f"{api.URL}/schedule/{datestr}", text=json.dumps(resp))
     with pytest.raises(
         ValueError, match=f"time data {datestr!r} does not match format '%Y-%m-%d'"
     ):
-        api.get_schedule(datestr=datestr)
+        api.get_weekly_schedules(date_from=datestr)
 
 
-def test_get_linescores(requests_mock: Any) -> None:
-    """Test get_linescores."""
-    resp = {"foo": "bar"}
-    requests_mock.get(f"{api.URL}/score/now", text=json.dumps(resp))
-    assert api.get_linescores() == resp
-
-
-def test_get_boxscores(requests_mock: Any) -> None:
-    """Test get_boxscores."""
-    resp = {"foo": "bar"}
-    game_id = 2024020202
-    requests_mock.get(f"{api.URL}/gamecenter/{game_id}/boxscore", text=json.dumps(resp))
-    assert api.get_boxscores(game_id) == resp
+def test_get_weekly_schedule_with_sample_data(
+    mock_aioresponse: aioresponses,
+    ep_match_schedule: re.Pattern[AnyStr],
+    schedule_data: list[dict[str, Any]],
+) -> None:
+    """Get weekly schedule with actuals sample data."""
+    mock_aioresponse.get(ep_match_schedule, payload=schedule_data)
+    schedule = next(api.get_weekly_schedules("2024-01-01"))
+    assert len(schedule)
+    assert isinstance(schedule, dict)
+    assert "gameWeek" in schedule
+    assert len(schedule["gameWeek"]) == 7
