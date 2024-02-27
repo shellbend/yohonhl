@@ -75,3 +75,24 @@ def test_get_weekly_schedule_with_sample_data(
     assert isinstance(schedule, dict)
     assert "gameWeek" in schedule
     assert len(schedule["gameWeek"]) == 7
+
+
+def test_get_game_info_for_single_game_id(
+    mock_aioresponse: aioresponses,
+    ep_match_game: re.Pattern[AnyStr],
+) -> None:
+    """Returns info for a single game."""
+    mock_aioresponse.get(ep_match_game, payload={"foo": "bar"})
+    game_info = api.get_game_info(2023020721)
+    assert next(game_info)["foo"] == "bar"
+
+
+def test_get_game_info_returns_empty_with_api_error_response(
+    mock_aioresponse: aioresponses,
+    ep_match_game: re.Pattern[AnyStr],
+) -> None:
+    """Fails when unable to get valid response from API."""
+    mock_aioresponse.get(ep_match_game, payload={"foo": "bar"}, status=404)
+    game_info = api.get_game_info(2023020721)
+    with pytest.raises(StopIteration):
+        next(game_info)
