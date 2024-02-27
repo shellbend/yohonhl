@@ -31,8 +31,8 @@ def test_goals_succeeds(
     mock_aioresponse: aioresponses,
 ) -> None:
     """Goals subcommand succeeds."""
-    mock_aioresponse.get(ep_match_schedule, payload=schedule_data)
-    mock_aioresponse.get(ep_match_game, payload=game_data)
-    result = runner.invoke(__main__.main, ["goals", "-v"])
+    mock_aioresponse.get(ep_match_schedule, payload=schedule_data, repeat=True)
+    mock_aioresponse.get(ep_match_game, payload=game_data, repeat=True)
+    result = runner.invoke(__main__.main, ["-v", "goals"])
     assert result.exit_code == 0
     assert result.output
