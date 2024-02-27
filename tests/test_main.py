@@ -22,7 +22,29 @@ def test_main_succeeds(runner: CliRunner) -> None:
     assert result.exit_code == 0
 
 
+def test_main_fails(runner: CliRunner) -> None:
+    """It exits with a non-zero exit code."""
+    result = runner.invoke(__main__.main, ["foo"])
+    assert result.exit_code != 0
+
+
 def test_goals_succeeds(
+    runner: CliRunner,
+    ep_match_schedule: re.Pattern[str],
+    ep_match_game: re.Pattern[str],
+    schedule_data: dict[str, Any],
+    game_data: dict[str, Any],
+    mock_aioresponse: aioresponses,
+) -> None:
+    """Goals subcommand succeeds."""
+    mock_aioresponse.get(ep_match_schedule, payload=schedule_data, repeat=True)
+    mock_aioresponse.get(ep_match_game, payload=game_data, repeat=True)
+    result = runner.invoke(__main__.main, ["goals"])
+    assert result.exit_code == 0
+    assert result.output
+
+
+def test_verbose_goals_succeeds(
     runner: CliRunner,
     ep_match_schedule: re.Pattern[str],
     ep_match_game: re.Pattern[str],
