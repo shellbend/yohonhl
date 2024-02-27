@@ -13,7 +13,9 @@ from datetime import timedelta
 from typing import Any
 from typing import Coroutine
 from typing import Iterable
+from typing import Iterator
 from typing import Sequence
+from typing import Union
 
 import aiohttp
 
@@ -58,7 +60,7 @@ async def _get_endpoint_async(url: str, session: aiohttp.ClientSession) -> Any:
         return None
 
 
-async def _get_endpoints_async(urls: Iterable[str]) -> Iterable[dict[str, Any]]:
+async def _get_endpoints_async(urls: Iterable[str]) -> Iterator[dict[str, Any]]:
     """Get multiple endpoints in parallel."""
     async with aiohttp.ClientSession() as session:
         tasks = (_get_endpoint_async(url, session) for url in urls)
@@ -86,10 +88,10 @@ def _run_async(coro: Coroutine[Any, Any, Iterable[dict[str, Any]]]) -> Any:
 
 def get_weekly_schedules(
     date_from: str = "", date_to: str = ""
-) -> Iterable[dict[str, Any]]:
+) -> Iterator[dict[str, Any]]:
     """Get the weekly schedule of games between given dates."""
     if not date_from:
-        return _run_async(_get_endpoints_async([f"{URL}/schedule/now"]))
+        return _run_async(_get_endpoints_async([f"{URL}/schedule/now"]))  # type: ignore
 
     date_from = normalize_datestr(date_from)
     date_to = date_from if not date_to else normalize_datestr(date_to)
@@ -97,12 +99,12 @@ def get_weekly_schedules(
 
     _log.debug("Getting weekly schedules for %r", start_dates)
     urls = (f"{URL}/schedule/{dt}" for dt in start_dates)
-    return _run_async(_get_endpoints_async(urls))
+    return _run_async(_get_endpoints_async(urls))  # type: ignore
 
 
-def get_game_info(game_ids: int | list[int]) -> Iterable[dict[str, Any]]:
+def get_game_info(game_ids: Union[int, list[int]]) -> Iterator[dict[str, Any]]:
     """Get game info with parallel API requests using aiohttp."""
     if isinstance(game_ids, int):
         game_ids = [game_ids]
     urls = (f"{URL}/gamecenter/{g}/landing" for g in game_ids)
-    return _run_async(_get_endpoints_async(urls))
+    return _run_async(_get_endpoints_async(urls))  # type: ignore

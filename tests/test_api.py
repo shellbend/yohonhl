@@ -96,3 +96,14 @@ def test_get_game_info_returns_empty_with_api_error_response(
     game_info = api.get_game_info(2023020721)
     with pytest.raises(StopIteration):
         next(game_info)
+
+
+@pytest.mark.asyncio()
+async def test_can_run_in_thread(
+    mock_aioresponse: aioresponses,
+    ep_match_game: re.Pattern[AnyStr],
+) -> None:
+    """Runs with a new event loop in another thread."""
+    mock_aioresponse.get(ep_match_game, payload={"foo": "bar"}, repeat=True)
+    game_info = list(api.get_game_info([20230207011, 20230207012]))
+    assert len(game_info) == 2
