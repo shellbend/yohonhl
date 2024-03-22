@@ -54,7 +54,7 @@ def _parse_goals_from_game_info(info: dict[str, Any]) -> list[Goal]:
 
     all_goals = []
     for period in scoring:
-        goal_period = int(period["period"])
+        goal_period = int(period["periodDescriptor"]["number"])
         for goal in period["goals"]:
             all_goals.append(
                 Goal(
