@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yohonhl"
-version = "0.1.0"
+version = "0.1.1"
 description = "Step 1: scrape NHL stats, Step 2: analyze data, Step 3: PROFIT"
 authors = ["Ben Shelley <shellbend@gmail.com>", "Robert Yoho <rsy923@gmail.com>"]
 license = "LICENSE"
