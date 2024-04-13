@@ -1,8 +1,6 @@
 """Unit tests for the yohonhl.api module."""
 
 import re
-from datetime import datetime
-from datetime import timedelta
 from typing import Any
 from typing import AnyStr
 
@@ -14,20 +12,30 @@ from yohonhl import api
 
 def test_get_week_start_dates_with_more_than_one_week() -> None:
     """Get week starting dates with more than one week."""
-    start, end = datetime(2024, 1, 1), datetime(2024, 2, 1)  # noqa: DTZ001
-    num_days = (end - start).days
-    num_weeks = num_days // 7
-    start_dates = api._get_week_start_dates(api.fmt_date(start), api.fmt_date(end))  # noqa: SLF001
+    start, end, num_weeks, expected_start_dates = (
+        "2024-01-01",
+        "2024-02-01",
+        5,
+        ["2024-01-01", "2024-01-08", "2024-01-15", "2024-01-22", "2024-01-29"],
+    )
+    start_dates = api._get_week_start_dates(start, end)  # noqa: SLF001
     assert num_weeks == len(start_dates)
-    for idx, date in enumerate(start_dates):
-        assert date == api.fmt_date(start + idx * timedelta(days=7))
+    for expected, date in zip(expected_start_dates, start_dates):
+        assert date == expected
 
 
 def test_get_week_start_dates_with_end_prior_to_start() -> None:
     """Get week starting dates where the end is prior to the start."""
-    start, end = datetime(2024, 2, 1), datetime(2024, 1, 1)  # noqa: DTZ001
-    start_dates = api._get_week_start_dates(api.fmt_date(start), api.fmt_date(end))  # noqa: SLF001
-    assert start_dates[0] == api.fmt_date(start)
+    start, end = "2024-02-01", "2024-01-01"
+    start_dates = api._get_week_start_dates(start, end)  # noqa: SLF001
+    assert start_dates[0] == start
+
+
+def test_get_week_start_dates_with_end_less_than_one_week() -> None:
+    """Get week starting dates where the end is less than 7 days from the start."""
+    start, end = "2024-04-08", "2024-04-13"
+    start_dates = api._get_week_start_dates(start, end)  # noqa: SLF001
+    assert start_dates[0] == "2024-04-08"
 
 
 _schedule_endpoint_matcher = re.compile(rf"{api.URL}/schedule/.*")
