@@ -1,4 +1,5 @@
 """Nox sessions."""
+
 import os
 import shlex
 import shutil
@@ -7,19 +8,8 @@ from pathlib import Path
 from textwrap import dedent
 
 import nox
-
-try:
-    from nox_poetry import Session
-    from nox_poetry import session
-except ImportError:
-    message = f"""\
-    Nox failed to import the 'nox-poetry' package.
-
-    Please install it using the following command:
-
-    {sys.executable} -m pip install nox-poetry"""
-    raise SystemExit(dedent(message)) from None
-
+from nox import Session
+from nox import session
 
 package = "yohonhl"
 python_versions = ["3.11", "3.10", "3.9"]
@@ -30,6 +20,7 @@ nox.options.sessions = (
     "tests",
     "typeguard",
 )
+nox.options.default_venv_backend = "uv"
 
 
 def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
@@ -132,7 +123,13 @@ def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests"]
     session.install(".")
-    session.install("mypy", "pytest", "types-requests", "pandas-stubs", "aioresponses")
+    session.install(
+        "mypy",
+        "pytest",
+        "types-requests",
+        "pandas-stubs",
+        "aioresponses",
+    )
     session.run("mypy", *args)
     if not session.posargs:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
