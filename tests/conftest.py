@@ -10,26 +10,26 @@ from aioresponses import aioresponses
 from yohonhl import api
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_aioresponse() -> Generator[aioresponses, None, None]:
     """Mock responses from aiohttp."""
     with aioresponses() as m:
         yield m
 
 
-@pytest.fixture()
+@pytest.fixture
 def ep_match_schedule() -> re.Pattern[str]:
     """Match all schedule enpoints."""
     return re.compile(rf"{api.URL}/schedule/.*")
 
 
-@pytest.fixture()
+@pytest.fixture
 def ep_match_game() -> re.Pattern[str]:
     """Match all gamecenter endpoints."""
     return re.compile(rf"{api.URL}/gamecenter/\d+/landing")
 
 
-@pytest.fixture()
+@pytest.fixture
 def schedule_data() -> dict[str, Any]:
     """Sample schedule data."""
     return {
@@ -2580,7 +2580,7 @@ def schedule_data() -> dict[str, Any]:
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def game_data() -> dict[str, Any]:
     """Sample game "landing" data."""
     return {
@@ -3168,7 +3168,7 @@ def game_data() -> dict[str, Any]:
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def game_data_without_scoring(game_data: dict[str, Any]) -> dict[str, Any]:
     """Game data with no scoring info."""
     new_game_data = deepcopy(game_data)
