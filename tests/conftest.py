@@ -1,8 +1,9 @@
 """PyTest fixtures."""
+
 import re
+from collections.abc import Generator
 from copy import deepcopy
 from typing import Any
-from typing import Generator
 
 import pytest
 from aioresponses import aioresponses

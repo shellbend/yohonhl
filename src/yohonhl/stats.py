@@ -1,13 +1,13 @@
 """Stats aggregation and calculations."""
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
 from datetime import datetime
 from datetime import time
 from itertools import chain
 from typing import Any
-from typing import Iterable
 
 from yohonhl import api
 

@@ -1,6 +1,5 @@
 """Unit tests for yohonhl.stats module."""
 
-
 import re
 from typing import Any
 from typing import AnyStr

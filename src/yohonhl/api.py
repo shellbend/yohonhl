@@ -6,15 +6,15 @@
 
 import asyncio
 import logging
+from collections.abc import Coroutine
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
-from typing import Coroutine
-from typing import Iterable
-from typing import Iterator
-from typing import Sequence
 from typing import Union
 
 import aiohttp
