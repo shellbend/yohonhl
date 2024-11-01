@@ -97,6 +97,25 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
                 break
 
 
+def _uv_sync(session: Session) -> None:
+    """Sync the nox session virtual environment using the project's lockfile.
+
+    This isn't really ideal because it installs all dependencies in all
+    sessions. However, `uv` is fast enough for now that this shouldn't really be
+    a problem. In the future, it would be better to do something like
+    `nox-poetry` does.
+    """
+    session.run_install(
+        "uv",
+        "sync",
+        "--inexact",
+        "--frozen",
+        "--all-extras",
+        "--quiet",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
+
+
 @session(name="pre-commit", python=python_versions[0])
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
@@ -106,13 +125,7 @@ def precommit(session: Session) -> None:
         "--hook-stage=manual",
         "--show-diff-on-failure",
     ]
-    session.install(
-        "darglint",
-        "ruff",
-        "pep8-naming",
-        "pre-commit",
-        "pre-commit-hooks",
-    )
+    _uv_sync(session)
     session.run("pre-commit", *args)
     if args and args[0] == "install":
         activate_virtualenv_in_precommit_hooks(session)
@@ -122,14 +135,7 @@ def precommit(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests"]
-    session.install(".")
-    session.install(
-        "mypy",
-        "pytest",
-        "types-requests",
-        "pandas-stubs",
-        "aioresponses",
-    )
+    _uv_sync(session)
     session.run("mypy", *args)
     if not session.posargs:
         session.run("mypy", f"--python-executable={sys.executable}", "noxfile.py")
@@ -138,14 +144,7 @@ def mypy(session: Session) -> None:
 @session(python=python_versions)
 def tests(session: Session) -> None:
     """Run the test suite."""
-    session.install(".")
-    session.install(
-        "coverage[toml]",
-        "pytest",
-        "pygments",
-        "aioresponses",
-        "pytest-asyncio",
-    )
+    _uv_sync(session)
     try:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
@@ -158,7 +157,7 @@ def coverage(session: Session) -> None:
     """Produce the coverage report."""
     args = session.posargs or ["report"]
 
-    session.install("coverage[toml]")
+    _uv_sync(session)
 
     if not session.posargs and any(Path().glob(".coverage.*")):
         session.run("coverage", "combine")
@@ -169,8 +168,7 @@ def coverage(session: Session) -> None:
 @session(python=python_versions[0])
 def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
-    session.install(".")
-    session.install("pytest", "pytest-asyncio", "typeguard", "pygments", "aioresponses")
+    _uv_sync(session)
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
 
@@ -184,8 +182,9 @@ def xdoctest(session: Session) -> None:
         if "FORCE_COLOR" in os.environ:
             args.append("--colored=1")
 
-    session.install(".")
-    session.install("xdoctest[colors]")
+    # TODO: Add dependencies: xdoctest[colors]
+    _uv_sync(session)
+
     session.run("python", "-m", "xdoctest", *args)
 
 
@@ -196,8 +195,8 @@ def docs_build(session: Session) -> None:
     if not session.posargs and "FORCE_COLOR" in os.environ:
         args.insert(0, "--color")
 
-    session.install(".")
-    session.install("sphinx", "sphinx-click", "furo", "myst-parser")
+    # TODO: Add dependencies: sphinx, sphinx-click, furo, myst-parser
+    _uv_sync(session)
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
@@ -210,8 +209,9 @@ def docs_build(session: Session) -> None:
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]
-    session.install(".")
-    session.install("sphinx", "sphinx-autobuild", "sphinx-click", "furo", "myst-parser")
+
+    # TODO: Add dependencies: sphinx, sphinx-autobuild, sphinx-click, furo, myst-parser
+    _uv_sync(session)
 
     build_dir = Path("docs", "_build")
     if build_dir.exists():
