@@ -38,6 +38,9 @@ dev-dependencies = [
 [project.scripts]
 yohonhl = "yohonhl.__main__:main"
 
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
 tests = ["tests", "*/tests"]

@@ -106,7 +106,7 @@ def test_get_game_info_returns_empty_with_api_error_response(
         next(game_info)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="function")
 async def test_can_run_in_thread(
     mock_aioresponse: aioresponses,
     ep_match_game: re.Pattern[AnyStr],
