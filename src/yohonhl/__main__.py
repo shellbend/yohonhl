@@ -15,7 +15,7 @@ from yohonhl import stats
 @click.option("-v", "--verbose", flag_value=True)
 def main(verbose: bool) -> None:
     """YohoNHL."""
-    logging.basicConfig()
+    logging.basicConfig(format="%(levelname)s: %(message)s")
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
