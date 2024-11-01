@@ -45,11 +45,8 @@ def _get_week_start_dates(date_from: str, date_to: str) -> Sequence[str]:
     """Get start dates for schedule requests between two given dates."""
     dt_from, dt_to = parse_date(date_from), parse_date(date_to)
     num_days = (dt_to - dt_from).days
-    num_weeks = num_days // 7 + 1
-    if num_days > 0:
-        dts_start = [dt_from + i * timedelta(days=7) for i in range(num_weeks)]
-    else:
-        dts_start = [dt_from]
+    num_weeks = max(num_days // 7 + 1, 1)
+    dts_start = [dt_from + i * timedelta(days=7) for i in range(num_weeks)]
     _log.debug(
         "Week start dates for %s - %s (%d days): %r",
         dt_from,
