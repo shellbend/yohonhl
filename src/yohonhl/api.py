@@ -46,7 +46,9 @@ def _get_week_start_dates(date_from: str, date_to: str) -> Sequence[str]:
     dt_from, dt_to = parse_date(date_from), parse_date(date_to)
     num_days = (dt_to - dt_from).days
     num_weeks = max(num_days // 7 + 1, 1)
-    dts_start = [dt_from + i * timedelta(days=7) for i in range(num_weeks)]
+    dts_start = [  # pragma: no branch
+        dt_from + i * timedelta(days=7) for i in range(num_weeks)
+    ]
     _log.debug(
         "Week start dates for %s - %s (%d days): %r",
         dt_from,
@@ -54,7 +56,7 @@ def _get_week_start_dates(date_from: str, date_to: str) -> Sequence[str]:
         num_days,
         dts_start,
     )
-    return [fmt_date(d) for d in dts_start]
+    return [fmt_date(d) for d in dts_start]  # pragma: no branch
 
 
 async def _get_endpoint_async(url: str, session: aiohttp.ClientSession) -> Any:

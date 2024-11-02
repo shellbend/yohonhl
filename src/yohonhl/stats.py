@@ -134,7 +134,9 @@ def get_goals(start_date: str, end_date: str = "") -> Iterable[Goal]:
     list[Goal]
         A list of `Goal` objects.
     """
-    game_ids = [g["id"] for g in get_games(start_date, end_date=end_date)]
+    game_ids = [  # pragma: no branch
+        g["id"] for g in get_games(start_date, end_date=end_date)
+    ]
     game_info = api.get_game_info(game_ids)
 
     # _parse_goals_from_game_info returns a list of goals for a single game. So
