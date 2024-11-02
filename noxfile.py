@@ -3,6 +3,7 @@
 import os
 import shlex
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from textwrap import dedent
@@ -12,7 +13,7 @@ from nox import Session
 from nox import session
 
 package = "yohonhl"
-python_versions = ["3.11", "3.10", "3.9"]
+python_versions = ["3.13", "3.12", "3.11", "3.10", "3.9"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -95,6 +96,34 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
                 lines.insert(1, dedent(header))
                 hook.write_text("\n".join(lines))
                 break
+
+
+def _add_uv_pythons_to_path() -> None:
+    """Add uv-managed python interpreters to PATH.
+
+    Nox won't be able to locate uv's python interpreters unless they are on the PATH.
+
+    See: https://github.com/astral-sh/uv/issues/6579
+    """
+    proc = subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "uv",
+            "python",
+            "list",
+            "--python-preference=only-managed",
+            "--only-installed",
+        ],
+        env={"NO_COLOR": "1", **os.environ},
+        capture_output=True,
+    )
+    uv_python_paths = []
+    for line in proc.stdout.decode().splitlines():
+        uv_python_paths.append(str(Path(line.split()[-1]).parent))
+    uv_python_path_env = os.pathsep.join(uv_python_paths)
+    os.environ["PATH"] = f"{uv_python_path_env}{os.pathsep}{os.environ['PATH']}"
+
+
+_add_uv_pythons_to_path()
 
 
 def _uv_sync(session: Session) -> None:
